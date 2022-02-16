@@ -47,13 +47,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     <div>
       <nav className={nav}>
         <div className={header}>
-          <Link href="/">
-            <a>
-              <div className={titleContainer}>
-                <h2 className={title}>oui dapp</h2>
-              </div>
-            </a>
-          </Link>
           {!account && (
             <div className={buttonContainer}>
               <button className={buttonStyle} onClick={connect}>
@@ -86,7 +79,7 @@ const container = css`
 `;
 
 const nav = css`
-  background-color: white;
+  background-color: #27344a;
 `;
 
 const header = css`
@@ -115,7 +108,7 @@ const buttonContainer = css`
 `;
 
 const buttonStyle = css`
-  background-color: #fafafa;
+  background-color: #8296b5;
   outline: none;
   border: none;
   font-size: 18px;

@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'; // new
-import { useRouter } from 'next/router';
 import { css } from '@emotion/css';
 import { ethers } from 'ethers';
 

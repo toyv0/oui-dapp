@@ -1,11 +1,6 @@
-import { css } from '@emotion/css';
 import { useContext } from 'react';
 import { useRouter } from 'next/router';
-import { ethers } from 'ethers';
 import { AccountContext } from '../context';
-import Oui from '../artifacts/contracts/Oui.sol/Oui.json';
-
-import { contractAddress, ownerAddress } from '../config';
 import Transactions from './transactions';
 
 export default function Home(props) {

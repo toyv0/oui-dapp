@@ -1,7 +1,6 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { useState } from 'react';
-import Link from 'next/link';
 import { css } from '@emotion/css';
 import { ethers } from 'ethers';
 import Web3Modal from 'web3modal';

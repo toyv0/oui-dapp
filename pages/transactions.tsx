@@ -5,7 +5,7 @@ import { ethers } from 'ethers';
 
 import { contractAddress } from '../config';
 
-import Oui from '../artifacts/contracts/Oui.sol/Oui.json';
+import Oui from '../public/abi/Oui.json';
 
 function Transactions() {
   const [amount, setAmount] = useState('');

@@ -5,18 +5,27 @@ import { ethers } from 'ethers';
 import { contractAddress } from '../config';
 
 import Oui from '../public/abi/Oui.json';
+import { getShortAddress } from '../public/helpers/helpers';
 
 function Transactions() {
   const [amount, setAmount] = useState('');
+  const [userAccount, setUserAccount] = useState(null);
   const [contractBalance, setContractBalance] = useState('loading...');
+  const [userBalance, setUserBalance] = useState('loading...');
   const [loaded, setLoaded] = useState(false);
+  let [isDepositing, setDepositing] = useState(false);
+  let [isWithdrawing, setWithdrawing] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
+    setTimeout(async () => {
       setLoaded(true);
-      getContractAmount();
+      await getUserAccount();
+      await getContractAmount();
+      await getUserBalance();
     }, 500);
   }, []);
+
+  console.log(userBalance);
 
   async function getContractAmount() {
     if (typeof window.ethereum !== 'undefined') {
@@ -32,20 +41,54 @@ function Transactions() {
     }
   }
 
+  async function getUserAccount() {
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const accounts = await provider.listAccounts();
+        if (accounts.length) setUserAccount(getShortAddress(accounts[0]));
+      }
+    } catch (error) {
+      console.log('error: ', error);
+    }
+  }
+
+  async function getUserBalance() {
+    if (typeof window.ethereum !== 'undefined') {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(contractAddress, Oui.abi, signer);
+      try {
+        const signerAddress = await signer.getAddress();
+        setUserAccount(getShortAddress(signerAddress));
+        const userBalance = await contract.getAccountBalance(signerAddress);
+        setUserBalance(ethers.utils.formatEther(userBalance));
+      } catch (error) {
+        console.log('error: ', error);
+      }
+    }
+  }
+
   async function deposit(amount: string) {
     if (typeof window.ethereum !== 'undefined') {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(contractAddress, Oui.abi, signer);
-      console.log('contract: ', contract);
       try {
         const deposit = await signer.sendTransaction({
           to: contract.address,
           value: ethers.utils.parseEther(`${amount}`),
         });
-        console.log('deposit: ', deposit);
+
+        setDepositing(true);
+
+        await deposit.wait();
+
+        alert(`successful deposit of ${amount}`);
+        setDepositing(false);
       } catch (error) {
-        console.log('Error: ', error);
+        console.log('error: ', error);
+        alert(`error: ${error?.data?.message ?? error}`);
       }
     }
   }
@@ -60,9 +103,16 @@ function Transactions() {
         const withdrawal = await contract.withdrawal(
           ethers.utils.parseEther(`${amount}`),
         );
-        console.log('withdrawal: ', withdrawal);
+
+        setWithdrawing(true);
+
+        await withdrawal.wait();
+
+        alert(`successful withdrawal of ${amount}`);
+        setWithdrawing(false);
       } catch (error) {
-        console.log('Error: ', error);
+        console.log('error: ', error);
+        alert(`error: ${error?.data?.message ?? error}`);
       }
     }
   }
@@ -71,29 +121,44 @@ function Transactions() {
     <div className={container}>
       {loaded && (
         <>
-          <h1 className={balance}>💰 {contractBalance} 💰</h1>
+          <h1 className={balance}>Vault: 💰 {contractBalance} 💰</h1>
           <div>
-            <input
-              className={input}
-              type="text"
-              placeholder="enter amount"
-              onChange={(e) => setAmount(e.target.value)}
-            ></input>
+            {isDepositing || isWithdrawing ? (
+              <div className={pending}>⏳ transaction pending ⌛️</div>
+            ) : (
+              <input
+                className={input}
+                type="text"
+                placeholder="enter amount"
+                onChange={(e) => setAmount(e.target.value)}
+              ></input>
+            )}
           </div>
           <button
             className={button}
             type="button"
-            onClick={() => deposit(amount)}
+            onClick={async () => await deposit(amount)}
           >
             Deposit
           </button>
           <button
             className={button}
             type="button"
-            onClick={() => withdrawal(amount)}
+            onClick={async () => await withdrawal(amount)}
           >
             Withdrawal
           </button>
+          {userAccount ? (
+            <h1 className={balance}>
+              {userAccount}: 💰 {userBalance} 💰
+            </h1>
+          ) : (
+            <div>
+              <button className={button} type="button" onClick={getUserBalance}>
+                get balance
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>
@@ -104,6 +169,14 @@ const container = css`
   width: 800px;
   margin: 25px auto;
   text-align: center;
+`;
+
+const pending = css`
+  font-weight: 100;
+  font-size: 48px;
+  text-align: center;
+  margin: 25px 0 0 0;
+  color: #ba5700;
 `;
 
 const button = css`

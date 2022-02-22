@@ -1,17 +1,9 @@
-import { useContext } from 'react';
-import { useRouter } from 'next/router';
-import { AccountContext } from '../context';
+// import { useContext } from 'react';
+// import { useRouter } from 'next/router';
+// import { AccountContext } from '../context';
 import Transactions from './transactions';
 
 export default function Home(props) {
-  // const { posts } = props;
-  const account = useContext(AccountContext);
-
-  const router = useRouter();
-  async function navigate() {
-    router.push('/');
-  }
-
   return (
     <div>
       <Transactions />

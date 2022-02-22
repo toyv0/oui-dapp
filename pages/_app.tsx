@@ -7,9 +7,16 @@ import Web3Modal from 'web3modal';
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import { AccountContext } from '../context';
 import 'easymde/dist/easymde.min.css';
+import { useEffect } from 'react';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const [account, setAccount] = useState(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      getUserAccount();
+    }, 500);
+  }, []);
 
   async function getWeb3Modal() {
     const web3Modal = new Web3Modal({
@@ -19,7 +26,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         walletconnect: {
           package: WalletConnectProvider,
           options: {
-            infuraId: process.env.NEXT_PUBLIC_INFURA_ID,
+            rpc: {
+              80001: 'https://rpc-mumbai.matic.today',
+            },
           },
         },
       },
@@ -30,15 +39,26 @@ function MyApp({ Component, pageProps }: AppProps) {
   async function connect() {
     try {
       const web3Modal = await getWeb3Modal();
-      //web3Modal.clearCachedProvider();
+      web3Modal.clearCachedProvider();
       const connection = await web3Modal.connect();
       const provider = new ethers.providers.Web3Provider(connection);
       const accounts = await provider.listAccounts();
+      console.log('~ accounts', accounts);
       setAccount(accounts[0]);
-      console.log('account', account);
-      console.log('owner', account);
     } catch (error) {
       console.log('error', error);
+    }
+  }
+
+  async function getUserAccount() {
+    try {
+      if (typeof window.ethereum !== 'undefined') {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const accounts = await provider.listAccounts();
+        if (accounts.length) setAccount(accounts[0]);
+      }
+    } catch (error) {
+      console.log('error: ', error);
     }
   }
 
@@ -53,7 +73,6 @@ function MyApp({ Component, pageProps }: AppProps) {
               </button>
             </div>
           )}
-          {account && <p className={accountInfo}>{account}</p>}
         </div>
       </nav>
       <div className={container}>
@@ -71,6 +90,7 @@ const accountInfo = css`
   flex: 1;
   justify-content: flex-end;
   font-size: 12px;
+  color: #8296b5;
 `;
 
 const container = css`
@@ -85,18 +105,6 @@ const header = css`
   display: flex;
   border-bottom: 1px solid rgba(0, 0, 0, 0.075);
   padding: 20px 30px;
-`;
-
-const titleContainer = css`
-  display: flex;
-  flex-direction: column;
-  padding-left: 15px;
-`;
-
-const title = css`
-  margin-left: 30px;
-  font-weight: 500;
-  margin: 0;
 `;
 
 const buttonContainer = css`
